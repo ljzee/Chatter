@@ -24,8 +24,11 @@ app.use(express.urlencoded({ extended: false }));
 
 var authenticationRouter = require('./routes/authentication');
 var registrationRouter = require('./routes/registration');
+var friendRequestRouter = require('./routes/friendRequest');
+
 app.use('/authentication', authenticationRouter);
 app.use('/registration', registrationRouter);
+app.use('/friendRequest', friendRequestRouter);
 
 // error handler
 app.use(function(err, req, res, next) {

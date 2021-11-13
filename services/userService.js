@@ -2,16 +2,19 @@ const bcrypt = require('bcrypt');
 const UserModel = require('../models/userModel');
 
 module.exports = {
+  findUserById,
   findUserByUsername,
   findUserByEmail,
   createUser
 };
 
+async function findUserById(id) {
+  return await UserModel.findById(id).exec();
+}
+
 async function findUserByUsername(username) {
   const user = await UserModel.findOne({
-    $or: [
-      {username: username}
-    ]
+    username: username
   }).exec();
 
   return user;
@@ -19,9 +22,7 @@ async function findUserByUsername(username) {
 
 async function findUserByEmail(email) {
   const user = await UserModel.findOne({
-    $or: [
-      {email: email}
-    ]
+    email: email
   }).exec();
 
   return user;

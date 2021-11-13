@@ -1,3 +1,9 @@
+const secret = "shhhhhh-its-a-secret";
+
 module.exports = {
-  secret: "shhhhhh-its-a-secret"
+  secret: secret,
+  expressJwtConfig: {
+    secret: secret,
+    algorithms: ['HS256']
+  }
 };

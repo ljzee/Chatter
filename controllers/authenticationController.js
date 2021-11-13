@@ -37,11 +37,12 @@ exports.authenticate = [
       }
 
       const token = jsonwebtoken.sign({
-        sub: user._id
+        sub: user.id
       }, JwtConfig.secret);
 
       return res.json({
-        token: token
+        token: token,
+        userId: user.id
       });
     }
 ]
