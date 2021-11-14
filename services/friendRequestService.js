@@ -1,12 +1,15 @@
 const friendRequestModelModule = require('../models/friendRequestModel');
 const FriendRequestModel = friendRequestModelModule.model;
+const UserService = require('./userService');
 
 module.exports = {
   doesPendingRequestExist,
   createRequest,
   findPendingRequestsByUserId,
-  doesUserOwnPendingRequest,
-  deletePendingRequest
+  doesUserOwnPendingOutgoingRequest,
+  doesUserOwnPendingIncomingRequest,
+  deletePendingRequest,
+  updatePendingRequest
 };
 
 async function doesPendingRequestExist(senderId, receiverId) {
@@ -54,7 +57,7 @@ async function findPendingRequestsByUserId(userId) {
   return pendingRequests;
 }
 
-async function doesUserOwnPendingRequest(userId, requestId) {
+async function doesUserOwnPendingOutgoingRequest(userId, requestId) {
   const request = await FriendRequestModel.findById(requestId).exec();
 
   if(!request) {
@@ -64,8 +67,39 @@ async function doesUserOwnPendingRequest(userId, requestId) {
   return request.sender._id.toString() === userId;
 }
 
+async function doesUserOwnPendingIncomingRequest(userId, requestId) {
+  const request = await FriendRequestModel.findById(requestId).exec();
+
+  if(!request) {
+    return false;
+  }
+
+  return request.receiver._id.toString() === userId;
+}
+
 async function deletePendingRequest(requestId) {
-  const deleteResult = await FriendRequestModel.deleteOne({_id: requestId}).exec();
+  const deleteResult = await FriendRequestModel.deleteOne({
+    _id: requestId
+  }).exec();
 
   return deleteResult.deletedCount === 1;
+}
+
+async function updatePendingRequest(requestId, acceptRequest) {
+  const request = await FriendRequestModel.findById(requestId)
+                                          .exec();
+
+  if(!request) {
+    return false;
+  }
+
+  request.status = acceptRequest ? friendRequestModelModule.FRIEND_REQUEST_STATUS_ACCEPTED
+                                 : friendRequestModelModule.FRIEND_REQUEST_STATUS_REJECTED;
+  request.save();
+
+  if(acceptRequest) {
+    await UserService.makeUsersFriends(request.sender._id.toString(), request.receiver._id.toString());
+  }
+
+  return true;
 }

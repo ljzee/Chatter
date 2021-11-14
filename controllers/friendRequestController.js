@@ -2,6 +2,7 @@ const UserService = require('../services/userService');
 const ValidationHelper = require('./validationHelper');
 const {body} = require("express-validator");
 const FriendRequestService = require('../services/FriendRequestService');
+const {validationResult} = require("express-validator");
 
 exports.processRequest = [
     body('email')
@@ -75,8 +76,8 @@ exports.getPendingRequests = async (req, res, next) => {
 exports.deletePendingRequest = async (req, res, next) => {
   const requestId = req.params.requestId;
 
-  const doesUserOwnPendingRequest = await FriendRequestService.doesUserOwnPendingRequest(req.user.sub, requestId);
-  if(!doesUserOwnPendingRequest) {
+  const doesUserOwnPendingOutgoingRequest = await FriendRequestService.doesUserOwnPendingOutgoingRequest(req.user.sub, requestId);
+  if(!doesUserOwnPendingOutgoingRequest) {
     return res.sendStatus(403);
   }
 
@@ -84,3 +85,29 @@ exports.deletePendingRequest = async (req, res, next) => {
 
   res.sendStatus(200);
 }
+
+exports.updatePendingRequest = [
+    body('acceptRequest')
+      .isBoolean({ loose: false }),
+    async (req, res, next) => {
+      const requestId = req.params.requestId;
+
+      const doesUserOwnPendingIncomingRequest = await FriendRequestService.doesUserOwnPendingIncomingRequest(req.user.sub, requestId);
+      if(!doesUserOwnPendingIncomingRequest) {
+        return res.sendStatus(403);
+      }
+
+      const errors = validationResult(req);
+      const validationErrors = errors.array();
+      if(validationErrors.length) {
+        return res.status(400).json({
+          error: "Invalid request."
+        });
+      }
+
+      const acceptRequest = req.body.acceptRequest;
+      await FriendRequestService.updatePendingRequest(requestId, acceptRequest);
+
+      res.sendStatus(200);
+    }
+]

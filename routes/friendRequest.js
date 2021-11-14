@@ -17,4 +17,8 @@ router.delete('/:requestId',
               expressJwt(JwtConfig.expressJwtConfig),
               friendRequestController.deletePendingRequest);
 
+router.put('/:requestId',
+           expressJwt(JwtConfig.expressJwtConfig),
+           friendRequestController.updatePendingRequest);
+
 module.exports = router;
