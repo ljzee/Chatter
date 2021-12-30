@@ -9,7 +9,8 @@ module.exports = {
   doesUserOwnPendingOutgoingRequest,
   doesUserOwnPendingIncomingRequest,
   deletePendingRequest,
-  updatePendingRequest
+  updatePendingRequest,
+  findPendingRequestById
 };
 
 async function doesPendingRequestExist(senderId, receiverId) {
@@ -102,4 +103,8 @@ async function updatePendingRequest(requestId, acceptRequest) {
   }
 
   return true;
+}
+
+async function findPendingRequestById(requestId) {
+  return await FriendRequestModel.findById(requestId).exec();
 }

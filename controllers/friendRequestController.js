@@ -3,6 +3,7 @@ const ValidationHelper = require('./validationHelper');
 const {body} = require("express-validator");
 const FriendRequestService = require('../services/FriendRequestService');
 const {validationResult} = require("express-validator");
+var UserManager = require('../classes/UserManager');
 
 exports.processRequest = [
     body('email')
@@ -53,13 +54,20 @@ exports.processRequest = [
       const pendingReceiverRequestExists = await FriendRequestService.doesPendingRequestExist(receiver.id, sender.id);
       if(pendingReceiverRequestExists) {
         res.status(400).json({
-          message: "You already have a pending friend request from this email."
+          error: "You already have a pending friend request from this email."
         });
       }
 
-      FriendRequestService.createRequest(sender.id, receiver.id);
+      const newRequest = await FriendRequestService.createRequest(sender.id, receiver.id);
 
       // Send a websocket message to the receiver if they are online
+      if(UserManager.hasUser(receiver.id)) {
+        const user = UserManager.getUser(receiver.id);
+        user.sendEvent("new-friend-request", {
+          "id": newRequest.id,
+          "senderEmail": sender.email
+        });
+      }
 
       return res.sendStatus(200);
     }
@@ -90,24 +98,45 @@ exports.updatePendingRequest = [
     body('acceptRequest')
       .isBoolean({ loose: false }),
     async (req, res, next) => {
-      const requestId = req.params.requestId;
+      try{
+        const requestId = req.params.requestId;
 
-      const doesUserOwnPendingIncomingRequest = await FriendRequestService.doesUserOwnPendingIncomingRequest(req.user.sub, requestId);
-      if(!doesUserOwnPendingIncomingRequest) {
-        return res.sendStatus(403);
+        const doesUserOwnPendingIncomingRequest = await FriendRequestService.doesUserOwnPendingIncomingRequest(req.user.sub, requestId);
+        if(!doesUserOwnPendingIncomingRequest) {
+          return res.sendStatus(403);
+        }
+
+        const errors = validationResult(req);
+        const validationErrors = errors.array();
+        if(validationErrors.length) {
+          return res.sendStatus(400);
+        }
+
+        const acceptRequest = req.body.acceptRequest;
+        await FriendRequestService.updatePendingRequest(requestId, acceptRequest);
+
+        const pendingRequest = await FriendRequestService.findPendingRequestById(requestId);
+        const senderId = pendingRequest.sender.toString();
+        if(UserManager.hasUser(senderId)) {
+          const sender = UserManager.getUser(senderId);
+          sender.sendEvent("update-friend-request", {
+            "id": pendingRequest.id,
+            "accepted": acceptRequest
+          });
+        }
+
+        const receiverId = pendingRequest.receiver.toString();
+        if(UserManager.hasUser(receiverId)) {
+          const receiver = UserManager.getUser(receiverId);
+          receiver.sendEvent("update-friend-request", {
+            "id": pendingRequest.id,
+            "accepted": acceptRequest
+          });
+        }
+
+        res.sendStatus(200);
+      } catch (error) {
+        next(error);
       }
-
-      const errors = validationResult(req);
-      const validationErrors = errors.array();
-      if(validationErrors.length) {
-        return res.status(400).json({
-          error: "Invalid request."
-        });
-      }
-
-      const acceptRequest = req.body.acceptRequest;
-      await FriendRequestService.updatePendingRequest(requestId, acceptRequest);
-
-      res.sendStatus(200);
     }
 ]

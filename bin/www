@@ -7,6 +7,11 @@
 var app = require('../app');
 var debug = require('debug')('realtime-chat-app:server');
 var http = require('http');
+var { Server } = require("socket.io");
+var UserManager = require('../classes/UserManager');
+var User = require('../classes/User');
+var JwtConfig = require('../config/jwtConfig');
+const jsonwebtoken = require('jsonwebtoken');
 
 /**
  * Get port from environment and store in Express.
@@ -20,6 +25,37 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/**
+ * Create Socket.io server and mount it on the HTTP server
+ */
+var io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+io.on("connection", (socket) => {
+  var decodedToken = jsonwebtoken.verify(socket.handshake.auth.token, JwtConfig.secret);
+  var userId = decodedToken.sub;
+
+  var user = null;
+  if(UserManager.hasUser(userId)) {
+    user = UserManager.getUser(userId);
+    user.addSocket(socket);
+  } else {
+    user = new User(userId, socket);
+    UserManager.addUser(user);
+  }
+
+  socket.on("disconnect", (reason) => {
+    user.removeSocket(socket.id);
+
+    if(!user.isConnected()) {
+      UserManager.removeUser(userId);
+    }
+  });
+});
 
 /**
  * Listen on provided port, on all network interfaces.
