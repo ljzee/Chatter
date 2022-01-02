@@ -25,13 +25,16 @@ app.use(express.urlencoded({ extended: false }));
 var authenticationRouter = require('./routes/authentication');
 var registrationRouter = require('./routes/registration');
 var friendRequestRouter = require('./routes/friendRequest');
+var friendRouter = require('./routes/friend');
 
 app.use('/authentication', authenticationRouter);
 app.use('/registration', registrationRouter);
 app.use('/friendRequest', friendRequestRouter);
+app.use('/friend', friendRouter);
 
 // error handler
 app.use(function(err, req, res, next) {
+  console.log(err);
   return res.status(500)
             .json({
               error: "An error has occured on the server. Please try again later."

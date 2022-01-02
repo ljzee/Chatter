@@ -48,6 +48,10 @@ io.on("connection", (socket) => {
     UserManager.addUser(user);
   }
 
+  socket.on("user-activity", () => {
+    user.touchLastActivityTimestamp();
+  });
+
   socket.on("disconnect", (reason) => {
     user.removeSocket(socket.id);
 

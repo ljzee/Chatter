@@ -18,7 +18,7 @@ class UserManager {
   }
 
   toString() {
-    var string = "{\n";
+    let string = "{\n";
 
     this.#userMap.forEach((value, key) => {
       string += `    ${key}:  ${value.toString()},\n`;
@@ -27,6 +27,15 @@ class UserManager {
     string += "}\n";
 
     return string;
+  }
+
+  getUserStatus(id) {
+    if(!this.hasUser(id)) {
+      return "offline";
+    }
+
+    const user = this.getUser(id);
+    return user.getStatus();
   }
 
 }

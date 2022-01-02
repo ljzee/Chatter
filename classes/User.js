@@ -38,6 +38,12 @@ class User {
     }
   }
 
+  getStatus() {
+    const idleAfterInactiveMs = 10000;
+    const isActive = (Date.now() - this.#lastActivityTimestamp) < idleAfterInactiveMs;
+    return isActive ? "active" : "idle";
+  }
+
   toString() {
     const socketIds = this.#sockets.map((socket) => (socket.id));
     const socketIdsString = socketIds.join();
