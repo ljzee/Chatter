@@ -64,9 +64,19 @@ async function makeUsersFriends(firstUserId, secondUserId) {
   return firstUserUpdateSuccess && secondUserUpdateSuccess;
 }
 
-async function getUserFriends(userId) {
+async function getUserFriends(userId, searchValue = null) {
+  const populateConfig = {
+    path: "friends"
+  };
+
+  if(searchValue) {
+    populateConfig["match"] = {
+      username: new RegExp("^" + searchValue)
+    };
+  }
+
   const user = await UserModel.findById(userId)
-                              .populate("friends")
+                              .populate(populateConfig)
                               .exec();
 
   let friends = user.friends;
