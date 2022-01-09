@@ -6,26 +6,26 @@ const FRIEND_REQUEST_STATUS_REJECTED = "REJECTED";
 
 const FriendRequestSchema = new mongoose.Schema({
   sender: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-          },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   receiver: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: 'User'
-            },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   status: {
-            type: String,
-            enum: [
-                    FRIEND_REQUEST_STATUS_PENDING,
-                    FRIEND_REQUEST_STATUS_ACCEPTED,
-                    FRIEND_REQUEST_STATUS_REJECTED
-                  ],
-            default: FRIEND_REQUEST_STATUS_PENDING
-          },
+    type: String,
+    enum: [
+      FRIEND_REQUEST_STATUS_PENDING,
+      FRIEND_REQUEST_STATUS_ACCEPTED,
+      FRIEND_REQUEST_STATUS_REJECTED
+    ],
+    default: FRIEND_REQUEST_STATUS_PENDING
+  },
   sentAt: {
-            type: Date,
-            default: Date.now
-          }
+    type: Date,
+    default: Date.now
+  }
 });
 
 module.exports = {

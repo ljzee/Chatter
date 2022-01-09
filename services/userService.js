@@ -8,7 +8,8 @@ module.exports = {
   findUserByEmail,
   createUser,
   makeUsersFriends,
-  getUserFriends
+  getUserFriends,
+  isUserFriendsWithUsers
 };
 
 async function findUserById(id) {
@@ -84,7 +85,7 @@ async function getUserFriends(userId, searchValue = null) {
     let friendObject = friend.toObject();
     
     let friendObjectWhitelisted = {};
-    friendObjectWhitelisted.id = friendObject._id;
+    friendObjectWhitelisted.id = friendObject._id.toString();
     friendObjectWhitelisted.email = friendObject.email;
     friendObjectWhitelisted.username = friendObject.username;
     friendObjectWhitelisted.status = UserManager.getUserStatus(friendObject._id.toString());
@@ -93,4 +94,18 @@ async function getUserFriends(userId, searchValue = null) {
   });
 
   return friends;
+}
+
+async function isUserFriendsWithUsers(userId, userIds) {
+  const friends = await getUserFriends(userId);
+
+  const friendIds = friends.map(friend => friend.id);
+
+  for(let i = 0; i < userIds.length; i++) {
+    if(!friendIds.includes(userIds[i])) {
+      return false;
+    }
+  }
+
+  return true;
 }

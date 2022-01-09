@@ -26,11 +26,13 @@ var authenticationRouter = require('./routes/authentication');
 var registrationRouter = require('./routes/registration');
 var friendRequestRouter = require('./routes/friendRequest');
 var friendRouter = require('./routes/friend');
+var chatRouter = require('./routes/chat');
 
 app.use('/authentication', authenticationRouter);
 app.use('/registration', registrationRouter);
 app.use('/friendRequest', friendRequestRouter);
 app.use('/friend', friendRouter);
+app.use('/chat', chatRouter);
 
 // error handler
 app.use(function(err, req, res, next) {
