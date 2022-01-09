@@ -18,8 +18,10 @@ const ChatSchema = new mongoose.Schema({
 });
 
 ChatSchema.methods.getParticipantUsernames = async function() {
-    await this.populate('participants');
-    
+    if(!this.populated('participants')) {
+        await this.populate('participants');
+    }
+
     const usernames = this.participants.map((participant) => {
         return participant.username;
     });

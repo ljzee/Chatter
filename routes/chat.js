@@ -9,4 +9,8 @@ router.post('/',
             expressJwt(JwtConfig.expressJwtConfig),
             chatController.createChat);
 
+router.get('/',
+           expressJwt(JwtConfig.expressJwtConfig),
+           chatController.getUserChats);
+
 module.exports = router;

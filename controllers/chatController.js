@@ -43,3 +43,11 @@ exports.createChat = [
         }
     }
 ]
+
+exports.getUserChats = async (req, res, next) => {
+    const chats = await ChatService.getUserChats(req.user.sub);
+
+    return res.json({
+        chats: chats
+    });
+}
