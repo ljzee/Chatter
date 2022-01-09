@@ -26,8 +26,17 @@ exports.createChat = [
 
             const chat = await ChatService.createChat(req.user.sub, participants, chatName);
 
+            if(UserManager.hasUser(req.user.sub)) {
+                const user = UserManager.getUser(req.user.sub);
+                user.sendEvent("create-new-chat", {
+                    "id": chat._id.toString(),
+                    "participants": await chat.getParticipantUsernames(),
+                    "chatName": chat.chatName
+                });
+            }
+
             return res.json({
-                chatId: chat._id
+                chatId: chat._id.toString()
             });
         } catch(error) {
             next(error);

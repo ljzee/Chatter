@@ -7,7 +7,7 @@ module.exports = {
 async function createChat(creatorId, participantIds, chatName = null) {
     let chatObj = {
         creator: creatorId,
-        participants: participantIds
+        participants: [creatorId, ...participantIds]
     }
 
     if(chatName) {

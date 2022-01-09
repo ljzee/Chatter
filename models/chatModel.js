@@ -17,16 +17,14 @@ const ChatSchema = new mongoose.Schema({
   }
 });
 
-ChatSchema.methods.getChatName = async function() {
-    if(this.chatName === null) {
-        await this.populate('participants');
-        const usernames = this.participants.map((participant) => {
-            return participant.username;
-        });
-        return usernames.join(", ");
-    }
-
-    return this.chatName;
+ChatSchema.methods.getParticipantUsernames = async function() {
+    await this.populate('participants');
+    
+    const usernames = this.participants.map((participant) => {
+        return participant.username;
+    });
+    
+    return usernames;
 }
 
 module.exports = mongoose.model('Chat', ChatSchema);
