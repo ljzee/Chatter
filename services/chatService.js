@@ -1,8 +1,11 @@
 const ChatModel = require('../models/chatModel');
+const MessageModel = require('../models/messageModel');
 
 module.exports = {
     createChat,
-    getUserChats
+    getUserChats,
+    isUserPartOfChat,
+    getChat
 };
   
 async function createChat(creatorId, participantIds, chatName = null) {
@@ -21,18 +24,49 @@ async function createChat(creatorId, participantIds, chatName = null) {
 }
 
 async function getUserChats(userId) {
-    const chatDocuments = await ChatModel.find({
+    const chats = await ChatModel.find({
         "participants": userId
     })
+    .populate("participants", "username")
     .exec();
 
-    const chats = await Promise.all(chatDocuments.map(async (chatDocument) => {
-        return {
-            id: chatDocument._id.toString(),
-            chatName: chatDocument.chatName,
-            participants: await chatDocument.getParticipantUsernames()
-        };
-    }));
-
     return chats;
+}
+
+async function isUserPartOfChat(userId, chatId) {
+    const chats = await getUserChats(userId);
+
+    for(const chat of chats) {
+        if(chat._id.toString() === chatId) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+async function getChat(chatId) {
+    const chatDocument = await ChatModel.findById(chatId)
+                                .populate("participants", "_id username")
+                                .exec();
+
+    const chatObject = chatDocument.toObject();
+
+    chatObject.messages = await getMostRecentMessagesForChat(chatId);
+
+    return chatObject;
+}
+
+async function getMostRecentMessagesForChat(chatId, count = 100) {
+    const messageDocuments = await MessageModel.find({
+        chat: chatId
+    })
+    .sort('-sentAt')
+    .limit(count)
+    .populate('sender', '_id username')
+    .exec();
+
+    const messageObjects = messageDocuments.map(messageDocument => messageDocument.toObject);
+
+    return messageObjects;
 }

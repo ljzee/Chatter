@@ -13,4 +13,8 @@ router.get('/',
            expressJwt(JwtConfig.expressJwtConfig),
            chatController.getUserChats);
 
+router.get('/:chatId',
+           expressJwt(JwtConfig.expressJwtConfig),
+           chatController.getChat);
+
 module.exports = router;

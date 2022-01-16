@@ -51,3 +51,16 @@ exports.getUserChats = async (req, res, next) => {
         chats: chats
     });
 }
+
+exports.getChat = async (req, res, next) => {
+    const chatId = req.params.chatId;
+    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+    if(!isUserPartOfChat) {
+        return res.sendStatus(403);
+    }
+
+    const chat = await ChatService.getChat(chatId);
+
+    return res.json(chat);
+}
