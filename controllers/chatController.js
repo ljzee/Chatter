@@ -64,3 +64,16 @@ exports.getChat = async (req, res, next) => {
 
     return res.json(chat);
 }
+
+exports.sendMessage = async (req, res, next) => {
+    const chatId = req.params.chatId;
+    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+    if(!isUserPartOfChat) {
+        return res.sendStatus(403);
+    }
+
+    await ChatService.sendMessage(chatId, req.user.sub, req.body.message);
+
+    return res.sendStatus(200);
+}

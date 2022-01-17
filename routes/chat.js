@@ -17,4 +17,8 @@ router.get('/:chatId',
            expressJwt(JwtConfig.expressJwtConfig),
            chatController.getChat);
 
+router.post('/:chatId/message',
+            expressJwt(JwtConfig.expressJwtConfig),
+            chatController.sendMessage);
+
 module.exports = router;

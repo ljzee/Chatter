@@ -5,7 +5,8 @@ module.exports = {
     createChat,
     getUserChats,
     isUserPartOfChat,
-    getChat
+    getChat,
+    sendMessage
 };
   
 async function createChat(creatorId, participantIds, chatName = null) {
@@ -34,15 +35,13 @@ async function getUserChats(userId) {
 }
 
 async function isUserPartOfChat(userId, chatId) {
-    const chats = await getUserChats(userId);
-
-    for(const chat of chats) {
-        if(chat._id.toString() === chatId) {
-            return true;
-        }
+    const chat = await ChatModel.findById(chatId);
+    if(!chat) {
+        return false;
     }
     
-    return false;
+    const participantIds = chat.participants.map(participant => participant._id.toString());
+    return participantIds.includes(userId);
 }
 
 async function getChat(chatId) {
@@ -66,7 +65,17 @@ async function getMostRecentMessagesForChat(chatId, count = 100) {
     .populate('sender', '_id username')
     .exec();
 
-    const messageObjects = messageDocuments.map(messageDocument => messageDocument.toObject);
+    const messageObjects = messageDocuments.map(messageDocument => messageDocument.toObject());
 
-    return messageObjects;
+    return messageObjects.reverse();
+}
+
+async function sendMessage(chatId, senderId, message) {
+    let messageDocument = new MessageModel({
+        sender: senderId,
+        contents: message,
+        chat: chatId
+    });
+    
+    await messageDocument.save();
 }
