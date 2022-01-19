@@ -12,6 +12,7 @@ var UserManager = require('../classes/UserManager');
 var User = require('../classes/User');
 var JwtConfig = require('../config/jwtConfig');
 const jsonwebtoken = require('jsonwebtoken');
+const ChatService = require('../services/chatService');
 
 /**
  * Get port from environment and store in Express.
@@ -29,13 +30,9 @@ var server = http.createServer(app);
 /**
  * Create Socket.io server and mount it on the HTTP server
  */
-var io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-io.on("connection", (socket) => {
+const io = require('../helper/io').initialize(server);
+
+io.on("connection", async (socket) => {
   var decodedToken = jsonwebtoken.verify(socket.handshake.auth.token, JwtConfig.secret);
   var userId = decodedToken.sub;
 
@@ -47,6 +44,9 @@ io.on("connection", (socket) => {
     user = new User(userId, socket);
     UserManager.addUser(user);
   }
+
+  const chatIds = await ChatService.getUserChatIds(userId);
+  user.joinChats(chatIds);
 
   socket.on("user-activity", () => {
     user.touchLastActivityTimestamp();

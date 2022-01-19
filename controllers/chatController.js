@@ -73,7 +73,10 @@ exports.sendMessage = async (req, res, next) => {
         return res.sendStatus(403);
     }
 
-    await ChatService.sendMessage(chatId, req.user.sub, req.body.message);
+    const newMessage = await ChatService.saveMessage(chatId, req.user.sub, req.body.message);
+    
+    const io = require('../helper/io').io();
+    io.to(chatId).emit("new-message", newMessage);
 
     return res.sendStatus(200);
 }

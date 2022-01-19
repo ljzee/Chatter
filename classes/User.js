@@ -44,6 +44,14 @@ class User {
     return isActive ? "active" : "idle";
   }
 
+  joinChats(chatIds) {
+    for(const socket of this.#sockets) {
+      for(const chatId of chatIds) {
+        socket.join(chatId);
+      }
+    }
+  }
+
   toString() {
     const socketIds = this.#sockets.map((socket) => (socket.id));
     const socketIdsString = socketIds.join();

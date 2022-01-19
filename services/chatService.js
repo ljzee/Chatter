@@ -4,9 +4,10 @@ const MessageModel = require('../models/messageModel');
 module.exports = {
     createChat,
     getUserChats,
+    getUserChatIds,
     isUserPartOfChat,
     getChat,
-    sendMessage
+    saveMessage
 };
   
 async function createChat(creatorId, participantIds, chatName = null) {
@@ -32,6 +33,15 @@ async function getUserChats(userId) {
     .exec();
 
     return chats;
+}
+
+async function getUserChatIds(userId) {
+    const chats = await ChatModel.find({
+        "participants": userId 
+    })
+    .exec();
+
+    return chats.map(chat => chat._id.toString());
 }
 
 async function isUserPartOfChat(userId, chatId) {
@@ -70,12 +80,26 @@ async function getMostRecentMessagesForChat(chatId, count = 100) {
     return messageObjects.reverse();
 }
 
-async function sendMessage(chatId, senderId, message) {
+async function saveMessage(chatId, senderId, message) {
     let messageDocument = new MessageModel({
         sender: senderId,
         contents: message,
         chat: chatId
     });
     
-    await messageDocument.save();
+    const newMessageDocument = await messageDocument.save();
+
+    await newMessageDocument.populate([{
+        path: 'sender', 
+        select: 'username'
+    }, {
+        path: 'chat',
+        select: 'chatName',
+        populate: {
+            path: 'participants',
+            select: 'username'
+        }
+    }]);
+
+    return newMessageDocument;
 }
