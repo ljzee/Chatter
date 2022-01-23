@@ -32,7 +32,46 @@ async function getUserChats(userId) {
     .populate("participants", "username")
     .exec();
 
-    return chats;
+    const chatIds = chats.map(chat => chat._id);
+    const chatsLatestMessage = await MessageModel.aggregate([
+        {
+            $match: {
+                chat: {
+                    $in: chatIds
+                }
+            }
+        },
+        {
+            $sort: {
+                sendAt: -1
+            }
+        },
+        {
+            $group: {
+                _id: "$chat",
+                lastestSentAt: { 
+                    $last: "$sentAt" 
+                }
+            }
+        }
+    ])
+    .exec();
+
+    const chatIdToLatestSentAt = {};
+    for(const message of chatsLatestMessage) {
+        chatIdToLatestSentAt[message._id.toString()] = message.lastestSentAt;
+    }
+
+    const chatObjects = [];
+    for(const chat of chats) {
+        const chatObject = chat.toObject();
+        chatObject.latestSentAt = chatIdToLatestSentAt.hasOwnProperty(chat._id.toString()) ?
+                                      chatIdToLatestSentAt[chat._id.toString()] :
+                                      null;
+        chatObjects.push(chatObject);
+    }
+
+    return chatObjects;
 }
 
 async function getUserChatIds(userId) {
