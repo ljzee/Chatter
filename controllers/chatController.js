@@ -28,11 +28,7 @@ exports.createChat = [
 
             if(UserManager.hasUser(req.user.sub)) {
                 const user = UserManager.getUser(req.user.sub);
-                user.sendEvent("create-new-chat", {
-                    "id": chat._id.toString(),
-                    "participants": await chat.getParticipantUsernames(),
-                    "chatName": chat.chatName
-                });
+                user.sendEvent("create-new-chat", chat);
             }
 
             return res.json({

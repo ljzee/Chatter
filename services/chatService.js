@@ -23,8 +23,11 @@ async function createChat(creatorId, participantIds, chatName = null) {
     }
     
     let chat = new ChatModel(chatObj);
-    
-    return await chat.save();
+    chat = await chat.save();
+
+    await chat.populate("participants", "username");
+
+    return chat;
 }
 
 async function getUserChats(userId) {

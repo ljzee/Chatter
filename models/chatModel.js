@@ -17,16 +17,4 @@ const ChatSchema = new mongoose.Schema({
   }
 });
 
-ChatSchema.methods.getParticipantUsernames = async function() {
-    if(!this.populated('participants')) {
-        await this.populate('participants');
-    }
-
-    const usernames = this.participants.map((participant) => {
-        return participant.username;
-    });
-    
-    return usernames;
-}
-
 module.exports = mongoose.model('Chat', ChatSchema);
