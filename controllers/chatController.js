@@ -80,3 +80,22 @@ exports.sendMessage = async (req, res, next) => {
 
     return res.sendStatus(200);
 }
+
+exports.getParticipantsStatus = async (req, res, next) => {
+    const chatId = req.params.chatId;
+    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+    if(!isUserPartOfChat) {
+        return res.sendStatus(403);
+    }
+
+    const chatParticipantIds = await ChatService.getChatParticipantIds(chatId);
+    const participantsStatus = chatParticipantIds.map(participantId => ({
+        participantId: participantId,
+        status: UserManager.getUserStatus(participantId)
+    }));
+
+    return res.json({
+        participantsStatus: participantsStatus
+    });
+}

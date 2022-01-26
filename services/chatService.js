@@ -1,5 +1,6 @@
 const ChatModel = require('../models/chatModel');
 const MessageModel = require('../models/messageModel');
+const UserManager = require('../classes/UserManager');
 
 module.exports = {
     createChat,
@@ -7,7 +8,8 @@ module.exports = {
     getUserChatIds,
     isUserPartOfChat,
     getChat,
-    saveMessage
+    saveMessage,
+    getChatParticipantIds
 };
   
 async function createChat(creatorId, participantIds, chatName = null) {
@@ -101,6 +103,9 @@ async function getChat(chatId) {
     const chatObject = chatDocument.toObject();
 
     chatObject.messages = await getMostRecentMessagesForChat(chatId);
+    for(const participant of chatObject.participants) {
+        participant.status = UserManager.getUserStatus(participant._id.toString());
+    }
 
     return chatObject;
 }
@@ -141,4 +146,10 @@ async function saveMessage(chatId, senderId, message) {
     }]);
 
     return newMessageDocument;
+}
+
+async function getChatParticipantIds(chatId) {
+    const chat = await ChatModel.findById(chatId);
+
+    return chat.participants.map(participant => participant._id.toString());
 }
