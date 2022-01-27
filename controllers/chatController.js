@@ -26,6 +26,16 @@ exports.createChat = [
 
             const chat = await ChatService.createChat(req.user.sub, participants, chatName);
 
+            // Make online participants join the chat room
+            for(const participant of chat.participants) {
+                const participantId = participant._id.toString();
+                if(UserManager.hasUser(participantId)) {
+                    const user = UserManager.getUser(participantId);
+                    user.joinChat(chat._id.toString());
+                }
+            }
+
+            // Send a socket message to the chat creator with chat details
             if(UserManager.hasUser(req.user.sub)) {
                 const user = UserManager.getUser(req.user.sub);
                 user.sendEvent("create-new-chat", chat);
