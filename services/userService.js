@@ -7,6 +7,7 @@ module.exports = {
   findUserByUsername,
   findUserByEmail,
   createUser,
+  updateUser,
   makeUsersFriends,
   getUserFriends,
   isUserFriendsWithUsers
@@ -42,6 +43,20 @@ async function createUser(username, email, password) {
   });
 
   return await newUser.save();
+}
+
+async function updateUser(userId, username, password) {
+  const user = await this.findUserById(userId);
+
+  if(!user) {
+    throw new Error("Cannot find user to update.");
+  }
+
+  user.username = username;
+  const passwordHash = await bcrypt.hash(password, 10);
+  user.passwordHash = passwordHash;
+
+  await user.save();
 }
 
 async function addUserAsFriend(userId, friendId) {
