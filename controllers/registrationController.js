@@ -37,7 +37,8 @@ exports.register = [
 
       return res.json({
         token: token,
-        userId: user.id
+        userId: user.id,
+        username: user.username
       });
     }
 ]
