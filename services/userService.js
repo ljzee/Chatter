@@ -45,7 +45,7 @@ async function createUser(username, email, password) {
   return await newUser.save();
 }
 
-async function updateUser(userId, username, password) {
+async function updateUser(userId, username, password, profileImageFilename) {
   const user = await this.findUserById(userId);
 
   if(!user) {
@@ -55,6 +55,7 @@ async function updateUser(userId, username, password) {
   user.username = username;
   const passwordHash = await bcrypt.hash(password, 10);
   user.passwordHash = passwordHash;
+  user.profileImageFilename = profileImageFilename;
 
   await user.save();
 }

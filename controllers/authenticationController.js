@@ -43,7 +43,8 @@ exports.authenticate = [
       return res.json({
         token: token,
         userId: user.id,
-        username: user.username
+        username: user.username,
+        profileImageFilename: user.profileImageFilename ?? ""
       });
     }
 ]

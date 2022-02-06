@@ -22,12 +22,15 @@ app.use(function(req, res, next) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+app.use('/uploads', express.static("uploads"));
+
 var authenticationRouter = require('./routes/authentication');
 var registrationRouter = require('./routes/registration');
 var friendRequestRouter = require('./routes/friendRequest');
 var friendRouter = require('./routes/friend');
 var chatRouter = require('./routes/chat');
-var userRouter =require('./routes/user');
+var userRouter = require('./routes/user');
+var uploadRouter = require('./routes/upload');
 
 app.use('/authentication', authenticationRouter);
 app.use('/registration', registrationRouter);
@@ -35,6 +38,7 @@ app.use('/friendRequest', friendRequestRouter);
 app.use('/friend', friendRouter);
 app.use('/chat', chatRouter);
 app.use('/user', userRouter);
+app.use('/upload', uploadRouter);
 
 // error handler
 app.use(function(err, req, res, next) {

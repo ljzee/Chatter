@@ -14,16 +14,16 @@ exports.updateUser = [
     ValidationHelper.processValidationResults,
     async (req, res, next) => {
         try{
-            const {username, password} = req.body;
+            const {username, password, profileImageFilename} = req.body;
 
             const userWithUsername = await UserService.findUserByUsername(username);
-            if(userWithUsername) {
+            if(userWithUsername && userWithUsername._id.toString() !== req.user.sub) {
                 return res.status(400).json({
                     error: "Username is already taken."
                 });
             }
 
-            await UserService.updateUser(req.user.sub, username, password);
+            await UserService.updateUser(req.user.sub, username, password, profileImageFilename);
 
             return res.sendStatus(200);
         } catch(error) {
