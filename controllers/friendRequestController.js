@@ -65,7 +65,8 @@ exports.processRequest = [
         const user = UserManager.getUser(receiver.id);
         user.sendEvent("new-friend-request", {
           "id": newRequest.id,
-          "senderEmail": sender.email
+          "senderUsername": sender.username,
+          "senderProfileImageFilename": sender.profileImageFilename
         });
       }
 

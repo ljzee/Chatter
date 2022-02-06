@@ -45,8 +45,8 @@ async function findPendingRequestsByUserId(userId) {
       }
     ]
   })
-  .populate('sender', 'email')
-  .populate('receiver', 'email')
+  .populate('sender', 'username profileImageFilename')
+  .populate('receiver', 'username profileImageFilename')
   .exec();
 
   pendingRequests = pendingRequests.map((pendingRequest) => {

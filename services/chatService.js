@@ -100,7 +100,7 @@ async function isUserPartOfChat(userId, chatId) {
 
 async function getChat(chatId) {
     const chatDocument = await ChatModel.findById(chatId)
-                                .populate("participants", "_id username")
+                                .populate("participants", "_id username profileImageFilename")
                                 .exec();
 
     const chatObject = chatDocument.toObject();
@@ -119,7 +119,7 @@ async function getMostRecentMessagesForChat(chatId, count = 100) {
     })
     .sort('-sentAt')
     .limit(count)
-    .populate('sender', '_id username')
+    .populate('sender', '_id username profileImageFilename')
     .exec();
 
     const messageObjects = messageDocuments.map(messageDocument => messageDocument.toObject());
@@ -138,7 +138,7 @@ async function saveMessage(chatId, senderId, message) {
 
     await newMessageDocument.populate([{
         path: 'sender', 
-        select: 'username'
+        select: 'username profileImageFilename'
     }, {
         path: 'chat',
         select: 'chatName',

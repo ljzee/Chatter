@@ -44,7 +44,7 @@ exports.authenticate = [
         token: token,
         userId: user.id,
         username: user.username,
-        profileImageFilename: user.profileImageFilename ?? ""
+        profileImageFilename: user.profileImageFilename
       });
     }
 ]

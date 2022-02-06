@@ -10,7 +10,10 @@ const UserSchema = new mongoose.Schema({
       ref: 'User'
     }
   ],
-  profileImageFilename: String
+  profileImageFilename: {
+    type: String, 
+    default: ''
+  }
 });
 
 module.exports = mongoose.model('User', UserSchema);

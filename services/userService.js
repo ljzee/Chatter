@@ -83,7 +83,8 @@ async function makeUsersFriends(firstUserId, secondUserId) {
 
 async function getUserFriends(userId, searchValue = null) {
   const populateConfig = {
-    path: "friends"
+    path: "friends",
+    select: "username profileImageFilename"
   };
 
   if(searchValue) {
@@ -99,14 +100,8 @@ async function getUserFriends(userId, searchValue = null) {
   let friends = user.friends;
   friends = friends.map((friend) => {
     let friendObject = friend.toObject();
-    
-    let friendObjectWhitelisted = {};
-    friendObjectWhitelisted.id = friendObject._id.toString();
-    friendObjectWhitelisted.email = friendObject.email;
-    friendObjectWhitelisted.username = friendObject.username;
-    friendObjectWhitelisted.status = UserManager.getUserStatus(friendObject._id.toString());
-
-    return friendObjectWhitelisted;
+    friendObject.status = UserManager.getUserStatus(friendObject._id.toString());
+    return friendObject;
   });
 
   return friends;
