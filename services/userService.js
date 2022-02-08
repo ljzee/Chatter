@@ -10,7 +10,9 @@ module.exports = {
   updateUser,
   makeUsersFriends,
   getUserFriends,
-  isUserFriendsWithUsers
+  isUserFriendsWithUsers,
+  isUserFriendsWithUser,
+  unfriendUsers
 };
 
 async function findUserById(id) {
@@ -110,7 +112,7 @@ async function getUserFriends(userId, searchValue = null) {
 async function isUserFriendsWithUsers(userId, userIds) {
   const friends = await getUserFriends(userId);
 
-  const friendIds = friends.map(friend => friend.id);
+  const friendIds = friends.map(friend => friend._id.toString());
 
   for(let i = 0; i < userIds.length; i++) {
     if(!friendIds.includes(userIds[i])) {
@@ -119,4 +121,28 @@ async function isUserFriendsWithUsers(userId, userIds) {
   }
 
   return true;
+}
+
+async function isUserFriendsWithUser(userId, otherUserId) {
+  return await isUserFriendsWithUsers(userId, [otherUserId]);
+}
+
+async function unfriendUsers(userId, friendId) {
+  await UserModel.updateOne({
+    _id: userId
+  },
+  {
+    $pull: {
+      friends: friendId
+    }
+  }).exec();
+
+  await UserModel.updateOne({
+    _id: friendId
+  },
+  {
+    $pull: {
+      friends: userId
+    }
+  }).exec();
 }

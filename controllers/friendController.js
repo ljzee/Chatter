@@ -11,3 +11,14 @@ exports.getFriends = async (req, res, next) => {
         next(error);
     }
 }
+
+exports.removeFriend = async (req, res, next) => {
+    const areUserFriends = await UserService.isUserFriendsWithUser(req.user.sub, req.params.friendId);
+    if(!areUserFriends) {
+        return res.sendStatus(403);
+    }
+
+    await UserService.unfriendUsers(req.user.sub, req.params.friendId);
+
+    res.sendStatus(200);
+}

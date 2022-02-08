@@ -9,4 +9,8 @@ router.get('/',
             expressJwt(JwtConfig.expressJwtConfig),
             friendController.getFriends);
 
+router.delete('/:friendId',
+              expressJwt(JwtConfig.expressJwtConfig),
+              friendController.removeFriend);
+
 module.exports = router;
