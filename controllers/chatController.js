@@ -105,3 +105,27 @@ exports.getParticipantsStatus = async (req, res, next) => {
         participantsStatus: participantsStatus
     });
 }
+
+exports.leaveChat = async (req, res, next) => {
+    const chatId = req.params.chatId;
+    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+    if(!isUserPartOfChat) {
+        return res.sendStatus(403);
+    }
+
+    await ChatService.removeUserFromChat(chatId, req.user.sub);
+
+    if(UserManager.hasUser(req.user.sub)) {
+        const user = UserManager.getUser(req.user.sub);
+        user.leaveChat(chatId);
+    }
+
+    const io = require('../helper/io').io();
+    io.to(chatId).emit("leave-chat", {
+        chatId: chatId,
+        userId: req.user.sub
+    });
+
+    return res.sendStatus(200);
+}

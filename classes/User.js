@@ -56,6 +56,12 @@ class User {
     }
   }
 
+  leaveChat(chatId) {
+    for(const socket of this.#sockets) {
+      socket.leave(chatId);
+    }
+  }
+
   toString() {
     const socketIds = this.#sockets.map((socket) => (socket.id));
     const socketIdsString = socketIds.join();

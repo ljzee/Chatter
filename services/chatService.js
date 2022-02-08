@@ -9,7 +9,8 @@ module.exports = {
     isUserPartOfChat,
     getChat,
     saveMessage,
-    getChatParticipantIds
+    getChatParticipantIds,
+    removeUserFromChat
 };
   
 async function createChat(creatorId, participantIds, chatName = null) {
@@ -155,4 +156,16 @@ async function getChatParticipantIds(chatId) {
     const chat = await ChatModel.findById(chatId);
 
     return chat.participants.map(participant => participant._id.toString());
+}
+
+async function removeUserFromChat(chatId, userId) {
+    const chat = await ChatModel.findById(chatId);
+
+    let updatedParticipants = chat.participants.filter((participant) => {
+        return participant._id.toString() !== userId;
+    });
+
+    chat.participants = updatedParticipants;
+
+    await chat.save();
 }

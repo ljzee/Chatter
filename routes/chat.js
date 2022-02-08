@@ -9,6 +9,10 @@ router.post('/',
             expressJwt(JwtConfig.expressJwtConfig),
             chatController.createChat);
 
+router.delete('/:chatId',
+              expressJwt(JwtConfig.expressJwtConfig),
+              chatController.leaveChat);
+
 router.get('/',
            expressJwt(JwtConfig.expressJwtConfig),
            chatController.getUserChats);
