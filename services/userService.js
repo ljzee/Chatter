@@ -5,7 +5,6 @@ const UserManager = require('../classes/UserManager');
 module.exports = {
   findUserById,
   findUserByUsername,
-  findUserByEmail,
   createUser,
   updateUser,
   makeUsersFriends,
@@ -22,14 +21,6 @@ async function findUserById(id) {
 async function findUserByUsername(username) {
   const user = await UserModel.findOne({
     username: username
-  }).exec();
-
-  return user;
-}
-
-async function findUserByEmail(email) {
-  const user = await UserModel.findOne({
-    email: email
   }).exec();
 
   return user;

@@ -20,10 +20,6 @@ exports.authenticate = [
 
       let user = await UserService.findUserByUsername(username);
       if(!user) {
-        user = await UserService.findUserByEmail(username);
-      }
-
-      if(!user) {
         return res.status(400).json({
           error: "Username or password is incorrect."
         });

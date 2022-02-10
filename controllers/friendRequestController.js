@@ -6,21 +6,20 @@ const {validationResult} = require("express-validator");
 var UserManager = require('../classes/UserManager');
 
 exports.processRequest = [
-    body('email')
+    body('username')
       .trim()
       .notEmpty()
-      .withMessage("Email is required")
+      .withMessage("Username is required")
       .toLowerCase(),
     ValidationHelper.processValidationResults,
     async (req, res, next) => {
-      const {email} = req.body;
+      const {username} = req.body;
 
-      let receiver = await UserService.findUserByEmail(email);
-
-      // Check if there is a user with the email.
+      // Check if there is a user with the username.
+      let receiver = await UserService.findUserByUsername(username);
       if(!receiver) {
         return res.status(400).json({
-          error: "Email does not exists."
+          error: "User does not exists."
         });
       }
 
@@ -38,7 +37,7 @@ exports.processRequest = [
       });
       if(isAlreadyAFriend) {
         return res.status(400).json({
-          error: email + " is already a friend."
+          error: username + " is already a friend."
         });
       }
 
@@ -46,7 +45,7 @@ exports.processRequest = [
       const pendingSenderRequestExists = await FriendRequestService.doesPendingRequestExist(sender.id, receiver.id);
       if(pendingSenderRequestExists) {
         return res.status(400).json({
-          error: "You've already sent a friend request to this email."
+          error: "You've already sent a friend request to this user."
         });
       }
 
@@ -54,7 +53,7 @@ exports.processRequest = [
       const pendingReceiverRequestExists = await FriendRequestService.doesPendingRequestExist(receiver.id, sender.id);
       if(pendingReceiverRequestExists) {
         res.status(400).json({
-          error: "You already have a pending friend request from this email."
+          error: "You already have a pending friend request from this user."
         });
       }
 
