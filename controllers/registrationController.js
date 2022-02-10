@@ -10,27 +10,21 @@ exports.register = [
       .isLength({ min: 8 })
       .withMessage('Username must have minimum eight characters')
       .toLowerCase(),
-    body('email')
-      .trim()
-      .isEmail()
-      .withMessage('Invalid email')
-      .toLowerCase(),
     body('password')
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)
       .withMessage('Password must have minimum eight characters, at least one uppercase letter, one lowercase letter and one number.'),
     ValidationHelper.processValidationResults,
     async (req, res, next) => {
-      const {username, email, password} = req.body;
+      const {username, password} = req.body;
 
       const userWithUsername = await UserService.findUserByUsername(username);
-      const userWithEmail = await UserService.findUserByEmail(email);
-      if(userWithUsername || userWithEmail) {
+      if(userWithUsername) {
         return res.status(400).json({
-          error: "User with the email or username already exists."
+          error: "Username is already taken."
         });
       }
 
-      const user = await UserService.createUser(username, email, password);
+      const user = await UserService.createUser(username, password);
       const token = jsonwebtoken.sign({
         sub: user.id
       }, JwtConfig.secret);
@@ -38,7 +32,8 @@ exports.register = [
       return res.json({
         token: token,
         userId: user.id,
-        username: user.username
+        username: user.username,
+        profileImageFilename: user.profileImageFilename
       });
     }
 ]

@@ -35,12 +35,11 @@ async function findUserByEmail(email) {
   return user;
 }
 
-async function createUser(username, email, password) {
+async function createUser(username, password) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   let newUser = new UserModel({
     username: username,
-    email: email,
     passwordHash: passwordHash
   });
 
