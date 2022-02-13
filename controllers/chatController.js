@@ -71,6 +71,24 @@ exports.getChat = async (req, res, next) => {
     return res.json(chat);
 }
 
+exports.getMessages = async (req, res, next) => {
+    const chatId = req.params.chatId;
+    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+    if(!isUserPartOfChat) {
+        return res.sendStatus(403);
+    }
+
+    const offset = req.query.hasOwnProperty("offset") ? parseInt(req.query.offset, 10) : 0;
+
+    const response = {
+        messages: await ChatService.getMostRecentMessages(chatId, 10, offset),
+        hasMoreMessages: await ChatService.hasMoreMessages(chatId, offset)
+    }
+
+    return res.json(response);
+}
+
 exports.sendMessage = async (req, res, next) => {
     const chatId = req.params.chatId;
     const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);

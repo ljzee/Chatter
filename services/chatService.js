@@ -9,6 +9,8 @@ module.exports = {
     isUserPartOfChat,
     getChat,
     saveMessage,
+    getMostRecentMessages,
+    hasMoreMessages,
     getChatParticipantIds,
     removeUserFromChat
 };
@@ -106,7 +108,8 @@ async function getChat(chatId) {
 
     const chatObject = chatDocument.toObject();
 
-    chatObject.messages = await getMostRecentMessagesForChat(chatId);
+    chatObject.messages = await getMostRecentMessages(chatId);
+    chatObject.hasMoreMessages = await hasMoreMessages(chatId, chatObject.messages.length);
     for(const participant of chatObject.participants) {
         participant.status = UserManager.getUserStatus(participant._id.toString());
     }
@@ -114,11 +117,12 @@ async function getChat(chatId) {
     return chatObject;
 }
 
-async function getMostRecentMessagesForChat(chatId, count = 100) {
+async function getMostRecentMessages(chatId, count = 10, offset = 0) {
     const messageDocuments = await MessageModel.find({
         chat: chatId
     })
     .sort('-sentAt')
+    .skip(offset)
     .limit(count)
     .populate('sender', '_id username profileImageFilename')
     .exec();
@@ -126,6 +130,18 @@ async function getMostRecentMessagesForChat(chatId, count = 100) {
     const messageObjects = messageDocuments.map(messageDocument => messageDocument.toObject());
 
     return messageObjects.reverse();
+}
+
+async function hasMoreMessages(chatId, offset) {
+    const messagesCount = await MessageModel.find({
+        chat: chatId
+    })
+    .sort('-sentAt')
+    .skip(offset)
+    .count()
+    .exec();
+
+    return messagesCount > 0;
 }
 
 async function saveMessage(chatId, senderId, message) {

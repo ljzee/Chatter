@@ -21,6 +21,10 @@ router.get('/:chatId',
            expressJwt(JwtConfig.expressJwtConfig),
            chatController.getChat);
 
+router.get('/:chatId/messages',
+           expressJwt(JwtConfig.expressJwtConfig),
+           chatController.getMessages)
+
 router.post('/:chatId/message',
             expressJwt(JwtConfig.expressJwtConfig),
             chatController.sendMessage);
