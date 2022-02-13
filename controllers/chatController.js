@@ -81,9 +81,11 @@ exports.getMessages = async (req, res, next) => {
 
     const offset = req.query.hasOwnProperty("offset") ? parseInt(req.query.offset, 10) : 0;
 
+    const moreMessages = await ChatService.getMostRecentMessages(chatId, 10, offset);
+
     const response = {
-        messages: await ChatService.getMostRecentMessages(chatId, 10, offset),
-        hasMoreMessages: await ChatService.hasMoreMessages(chatId, offset)
+        messages: moreMessages,
+        hasMoreMessages: await ChatService.hasMoreMessages(chatId, offset + moreMessages.length)
     }
 
     return res.json(response);
