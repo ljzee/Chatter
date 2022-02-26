@@ -32,5 +32,9 @@ router.post('/:chatId/message',
 router.get('/:chatId/participants/status',
            expressJwt(JwtConfig.expressJwtConfig),
            chatController.getParticipantsStatus);
+    
+router.post('/:chatId/participants',
+            expressJwt(JwtConfig.expressJwtConfig),
+            chatController.addChatParticipants)
 
 module.exports = router;

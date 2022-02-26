@@ -12,7 +12,8 @@ module.exports = {
     getMostRecentMessages,
     hasMoreMessages,
     getChatParticipantIds,
-    removeUserFromChat
+    removeUserFromChat,
+    addChatParticipants
 };
   
 async function createChat(creatorId, participantIds, chatName = null) {
@@ -184,4 +185,16 @@ async function removeUserFromChat(chatId, userId) {
     chat.participants = updatedParticipants;
 
     await chat.save();
+}
+
+async function addChatParticipants(chatId, participantIds) {
+    const chat = await ChatModel.findById(chatId);
+
+    let currentParticipantIds = chat.participants.map(participant => participant._id.toString());
+    let participantIdsToAdd = participantIds.filter(participantId => !currentParticipantIds.includes(participantId));
+    chat.participants = [...chat.participants, ...participantIdsToAdd];
+
+    await chat.save();
+
+    return participantIdsToAdd;
 }

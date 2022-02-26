@@ -149,3 +149,50 @@ exports.leaveChat = async (req, res, next) => {
 
     return res.sendStatus(200);
 }
+
+exports.addChatParticipants = async (req, res, next) => {
+    try {
+        const chatId = req.params.chatId;
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        const {participantIds} = req.body;
+        if(typeof participantIds === "undefined" || !Array.isArray(participantIds)) {
+            return res.sendStatus(400);
+        }
+
+        if(participantIds.length === 0) {
+            return res.status(400).json({
+                error: "You must select one participant to add."
+            });
+        }
+        
+        const isUserFriendsWithParticipants = await UserService.isUserFriendsWithUsers(req.user.sub, participantIds);
+        if(!isUserFriendsWithParticipants) {
+            return res.status(400).json({
+                error: "You are not friends with one or more participants."
+            });
+        }
+
+        const participantIdsAdded = await ChatService.addChatParticipants(chatId, participantIds);
+
+        for(const participantId of participantIdsAdded) {
+            if(UserManager.hasUser(participantId)) {
+                const user = UserManager.getUser(participantId);
+                user.joinChat(chatId);
+            }
+        }
+
+        const io = require('../helper/io').io();
+        io.to(chatId).emit("add-participants", {
+            chatId: chatId
+        });
+
+        return res.sendStatus(200);
+    } catch(error) {
+        next(error);
+    }
+}
