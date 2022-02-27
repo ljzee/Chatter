@@ -8,6 +8,7 @@ module.exports = {
     getUserChatIds,
     isUserPartOfChat,
     getChat,
+    getParticipants,
     saveMessage,
     getMostRecentMessages,
     hasMoreMessages,
@@ -116,6 +117,15 @@ async function getChat(chatId) {
     }
 
     return chatObject;
+}
+
+async function getParticipants(chatId) {
+    const chat = await getChat(chatId);
+    if(!chat) {
+        throw new Error("Cannot get participants for non-existent chat.");
+    }
+
+    return chat.participants;
 }
 
 async function getMostRecentMessages(chatId, count = 10, offset = 0) {

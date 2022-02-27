@@ -32,7 +32,11 @@ router.post('/:chatId/message',
 router.get('/:chatId/participants/status',
            expressJwt(JwtConfig.expressJwtConfig),
            chatController.getParticipantsStatus);
-    
+
+router.get("/:chatId/participants",
+           expressJwt(JwtConfig.expressJwtConfig),
+           chatController.getParticipants);
+
 router.post('/:chatId/participants',
             expressJwt(JwtConfig.expressJwtConfig),
             chatController.addChatParticipants)

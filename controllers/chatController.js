@@ -196,3 +196,22 @@ exports.addChatParticipants = async (req, res, next) => {
         next(error);
     }
 }
+
+exports.getParticipants = async (req, res, next) => {
+    try {
+        const chatId = req.params.chatId;
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        const participants = await ChatService.getParticipants(chatId);
+
+        return res.json({
+            participants
+        });
+    } catch(error) {
+        next(error);
+    }
+}
