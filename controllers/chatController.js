@@ -51,110 +51,134 @@ exports.createChat = [
 ]
 
 exports.getUserChats = async (req, res, next) => {
-    const chats = await ChatService.getUserChats(req.user.sub);
+    try {
+        const chats = await ChatService.getUserChats(req.user.sub);
 
-    return res.json({
-        chats: chats
-    });
+        return res.json({
+            chats: chats
+        });
+    } catch(error) {
+        next(error);
+    }
 }
 
 exports.getChat = async (req, res, next) => {
-    const chatId = req.params.chatId;
-    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+    try {
+        const chatId = req.params.chatId;
 
-    if(!isUserPartOfChat) {
-        return res.sendStatus(403);
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        const chat = await ChatService.getChat(chatId);
+
+        return res.json(chat);
+    } catch(error) {
+        next(error);
     }
-
-    const chat = await ChatService.getChat(chatId);
-
-    return res.json(chat);
 }
 
 exports.getMessages = async (req, res, next) => {
-    const chatId = req.params.chatId;
-    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+    try {
+        const chatId = req.params.chatId;
 
-    if(!isUserPartOfChat) {
-        return res.sendStatus(403);
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        const offset = req.query.hasOwnProperty("offset") ? parseInt(req.query.offset, 10) : 0;
+
+        const moreMessages = await ChatService.getMostRecentMessages(chatId, 10, offset);
+
+        const response = {
+            messages: moreMessages,
+            hasMoreMessages: await ChatService.hasMoreMessages(chatId, offset + moreMessages.length)
+        }
+
+        return res.json(response);
+    } catch(error) {
+        next(error);
     }
-
-    const offset = req.query.hasOwnProperty("offset") ? parseInt(req.query.offset, 10) : 0;
-
-    const moreMessages = await ChatService.getMostRecentMessages(chatId, 10, offset);
-
-    const response = {
-        messages: moreMessages,
-        hasMoreMessages: await ChatService.hasMoreMessages(chatId, offset + moreMessages.length)
-    }
-
-    return res.json(response);
 }
 
 exports.sendMessage = async (req, res, next) => {
-    const chatId = req.params.chatId;
-    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+    try {
+        const chatId = req.params.chatId;
 
-    if(!isUserPartOfChat) {
-        return res.sendStatus(403);
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        const newMessage = await ChatService.saveMessage(chatId, req.user.sub, req.body.message);
+        
+        const io = require('../helper/io').io();
+        io.to(chatId).emit("new-message", newMessage);
+
+        return res.sendStatus(200);
+    } catch(error) {
+        next(error);
     }
-
-    const newMessage = await ChatService.saveMessage(chatId, req.user.sub, req.body.message);
-    
-    const io = require('../helper/io').io();
-    io.to(chatId).emit("new-message", newMessage);
-
-    return res.sendStatus(200);
 }
 
 exports.getParticipantsStatus = async (req, res, next) => {
-    const chatId = req.params.chatId;
-    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+    try{
+        const chatId = req.params.chatId;
 
-    if(!isUserPartOfChat) {
-        return res.sendStatus(403);
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        const chatParticipantIds = await ChatService.getChatParticipantIds(chatId);
+        const participantsStatus = chatParticipantIds.map(participantId => ({
+            participantId: participantId,
+            status: UserManager.getUserStatus(participantId)
+        }));
+
+        return res.json({
+            participantsStatus: participantsStatus
+        });
+    } catch(error) {
+        next(error);
     }
-
-    const chatParticipantIds = await ChatService.getChatParticipantIds(chatId);
-    const participantsStatus = chatParticipantIds.map(participantId => ({
-        participantId: participantId,
-        status: UserManager.getUserStatus(participantId)
-    }));
-
-    return res.json({
-        participantsStatus: participantsStatus
-    });
 }
 
 exports.leaveChat = async (req, res, next) => {
-    const chatId = req.params.chatId;
-    const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+    try {
+        const chatId = req.params.chatId;
 
-    if(!isUserPartOfChat) {
-        return res.sendStatus(403);
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
+        if(!isUserPartOfChat) {
+            return res.sendStatus(403);
+        }
+
+        await ChatService.removeUserFromChat(chatId, req.user.sub);
+
+        if(UserManager.hasUser(req.user.sub)) {
+            const user = UserManager.getUser(req.user.sub);
+            user.leaveChat(chatId);
+        }
+
+        const io = require('../helper/io').io();
+        io.to(chatId).emit("leave-chat", {
+            chatId: chatId,
+            userId: req.user.sub
+        });
+
+        return res.sendStatus(200);
+    } catch(error) {
+        next(error);
     }
-
-    await ChatService.removeUserFromChat(chatId, req.user.sub);
-
-    if(UserManager.hasUser(req.user.sub)) {
-        const user = UserManager.getUser(req.user.sub);
-        user.leaveChat(chatId);
-    }
-
-    const io = require('../helper/io').io();
-    io.to(chatId).emit("leave-chat", {
-        chatId: chatId,
-        userId: req.user.sub
-    });
-
-    return res.sendStatus(200);
 }
 
 exports.addChatParticipants = async (req, res, next) => {
     try {
         const chatId = req.params.chatId;
-        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
 
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
         if(!isUserPartOfChat) {
             return res.sendStatus(403);
         }
@@ -200,8 +224,8 @@ exports.addChatParticipants = async (req, res, next) => {
 exports.getParticipants = async (req, res, next) => {
     try {
         const chatId = req.params.chatId;
-        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
 
+        const isUserPartOfChat = await ChatService.isUserPartOfChat(req.user.sub, chatId);
         if(!isUserPartOfChat) {
             return res.sendStatus(403);
         }

@@ -15,25 +15,29 @@ exports.register = [
       .withMessage('Password must have minimum eight characters, at least one uppercase letter, one lowercase letter and one number.'),
     ValidationHelper.processValidationResults,
     async (req, res, next) => {
-      const {username, password} = req.body;
+      try {
+        const {username, password} = req.body;
 
-      const userWithUsername = await UserService.findUserByUsername(username);
-      if(userWithUsername) {
-        return res.status(400).json({
-          error: "Username is already taken."
+        const userWithUsername = await UserService.findUserByUsername(username);
+        if(userWithUsername) {
+          return res.status(400).json({
+            error: "Username is already taken."
+          });
+        }
+
+        const user = await UserService.createUser(username, password);
+        const token = jsonwebtoken.sign({
+          sub: user.id
+        }, JwtConfig.secret);
+
+        return res.json({
+          token: token,
+          userId: user.id,
+          username: user.username,
+          profileImageFilename: user.profileImageFilename
         });
+      } catch(error) {
+        next(error);
       }
-
-      const user = await UserService.createUser(username, password);
-      const token = jsonwebtoken.sign({
-        sub: user.id
-      }, JwtConfig.secret);
-
-      return res.json({
-        token: token,
-        userId: user.id,
-        username: user.username,
-        profileImageFilename: user.profileImageFilename
-      });
     }
 ]
