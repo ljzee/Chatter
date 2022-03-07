@@ -1,7 +1,7 @@
 const UserService = require('../services/userService');
 const ValidationHelper = require('./validationHelper');
 const {body} = require("express-validator");
-const FriendRequestService = require('../services/FriendRequestService');
+const FriendRequestService = require('../services/friendRequestService');
 const {validationResult} = require("express-validator");
 var UserManager = require('../classes/UserManager');
 
