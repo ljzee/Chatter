@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Box, Input } from '@mui/material';
+import { Box, Input, InputAdornment, IconButton } from '@mui/material';
 import { chatService } from '../../../services/chatService';
 import { useParams } from 'react-router-dom';
+import SendIcon from '@mui/icons-material/Send';
 
 export default function ChatBox(props) {
     const [message, setMessage] = React.useState('');
@@ -12,17 +13,25 @@ export default function ChatBox(props) {
 
     const {id} = useParams();
 
+    const sendMessage = () => {
+        const trimmedMessage = message.trim();
+        if(trimmedMessage === '') {
+            return;
+        }
+
+        chatService.sendMessage(id, message);
+        setMessage('');
+    }
+
     const handleKeyPress = (e) => {
         if(e.key === 'Enter') {
-          const trimmedMessage = message.trim();
-          if(trimmedMessage === '') {
-              return;
-          }
-
-          chatService.sendMessage(id, message);
-          setMessage('');
+            sendMessage();
         }
     };
+
+    const handleClickSend = () => {
+        sendMessage();
+    }
 
     return (
         <Box sx={sxBox}>
@@ -32,6 +41,16 @@ export default function ChatBox(props) {
                 value={message}
                 onChange={handleChangeMessage}
                 onKeyPress={handleKeyPress}
+                endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="send message"
+                        onClick={handleClickSend}
+                      >
+                        <SendIcon/>
+                      </IconButton>
+                    </InputAdornment>
+                }
             />
         </Box>
     );
